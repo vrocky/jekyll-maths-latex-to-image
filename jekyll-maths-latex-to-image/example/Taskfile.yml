@@ -1,0 +1,73 @@
+version: '3'
+
+vars:
+  JEKYLL_ENV: development
+
+tasks:
+  install:
+    desc: Install dependencies
+    cmds:
+      - bundle install
+
+  build:
+    desc: Build the Jekyll site
+    cmds:
+      - bundle exec jekyll build
+    sources:
+      - _sass/**/*
+      - _layouts/**/*
+      - assets/**/*
+      - _config.yml
+    generates:
+      - _site/**/*
+
+  serve:
+    desc: Serve the site locally with live reload
+    cmds:
+      - bundle exec jekyll serve --livereload
+    interactive: true
+
+  clean:
+    desc: Clean the built site and metadata
+    cmds:
+      - bundle exec jekyll clean
+      - rm -rf .jekyll-cache
+      - rm -rf .sass-cache
+
+  update:
+    desc: Update gems and dependencies
+    cmds:
+      - bundle update
+
+  production:
+    desc: Build site for production
+    cmds:
+      - JEKYLL_ENV=production bundle exec jekyll build
+
+  sass-watch:
+    desc: Watch for Sass changes
+    cmds:
+      - sass --watch _sass:assets/css
+
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  new-post:
+    desc: Create a new post
+    cmds:
+      - |
+        post_name="{{.CLI_ARGS}}"
+        if [ -z "$post_name" ]; then
+          echo "Please provide a post name"
+          exit 1
+        fi
+        date=$(date +%Y-%m-%d)
+        file="_posts/${date}-${post_name}.md"
+        echo "---" > $file
+        echo "layout: post" >> $file
+        echo "title: ${post_name}" >> $file
+        echo "date: ${date}" >> $file
+        echo "---" >> $file
+        echo "Created new post: $file"

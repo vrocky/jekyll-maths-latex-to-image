@@ -1,0 +1,24 @@
+source "https://rubygems.org"
+
+gem "jekyll", "~> 4.3.2"
+gem "webrick", "~> 1.8"  # Required for Ruby 3.0+
+gem "csv"  # Add this line for Ruby 3.4.0 compatibility
+gem "base64" # Required for Ruby 3.4.0
+gem "mutex_m" # Required for Ruby 3.4.0
+gem "fiddle" # Required for Ruby 3.4.0
+
+# Our math rendering plugin
+gem "jekyll-maths-latex-to-image", path: "../"
+
+group :jekyll_plugins do
+  gem "jekyll-feed", "~> 0.12"
+  gem "jekyll-seo-tag", "~> 2.8"
+end
+
+# Windows and JRuby does not include zoneinfo files, so bundle the tzinfo-data gem
+platforms :mingw, :x64_mingw, :mswin, :jruby do
+  gem "tzinfo", ">= 1"
+  gem "tzinfo-data"
+end
+
+
