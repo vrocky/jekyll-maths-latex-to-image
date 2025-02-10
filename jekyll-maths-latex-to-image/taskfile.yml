@@ -1,0 +1,25 @@
+version: '3'
+
+tasks:
+  build:
+    desc: Build the Ruby gem
+    cmds:
+      - gem build *.gemspec
+
+  test:
+    desc: Run RSpec tests
+    cmds:
+      - bundle exec rspec
+
+  publish:
+    desc: Publish the gem to RubyGems
+    deps: [build, test]
+    cmds:
+      - gem push *.gem
+
+  clean:
+    desc: Clean up build artifacts
+    cmds:
+      - rm -f *.gem
+      - rm -rf pkg/
+      - rm -rf coverage/

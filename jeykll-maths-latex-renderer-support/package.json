@@ -1,6 +1,6 @@
 {
   "name": "jeykll-maths-latex-to-image-node-support",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "A support package for Jekyll plugin that converts LaTeX mathematical expressions to PNG images for better compatibility and improved rendering across different platforms",
   "main": "index.js",
   "scripts": {
@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/vrocky/jekyll-maths-latex-to-image#readme",
   "dependencies": {
-    "texsvg": "^1.0.0",
+    "texsvg": "^2.2.2",
     "json-rpc-2.0": "^1.7.0",
     "sharp": "^0.33.2",
     "glob": "11.0.1"

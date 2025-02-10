@@ -1,19 +1,31 @@
 const fs = require('fs');
 const path = require('path');
-const JsonRpcHandler = require('./json_rpc_handler'); // Ensure this path is correct
+const JsonRpcHandler = require('./json_rpc_handler');
 const SvgConverter = require('../utils/svg_converter');
+const Logger = require('../utils/logger');
 
 class MathServer {
-  constructor(options) {
-    if (!options.baseDir || !options.logDir || !options.debugDir || 
-        !options.inputStream || !options.outputStream) {
-      throw new Error('Missing required options');
+  constructor(options = {}) {
+    const requiredParams = {
+      baseDir: options.baseDir,
+      debugDir: options.debugDir,
+      inputStream: options.inputStream,
+      outputStream: options.outputStream
+    };
+
+    const missingParams = Object.entries(requiredParams)
+      .filter(([_, value]) => !value)
+      .map(([key]) => key);
+
+    if (missingParams.length > 0) {
+      const missingList = missingParams.join(', ');
+      throw new Error(`Missing required parameters: ${missingList}`);
     }
     
     this.options = options;
     this.isRunning = false;
-    this.logsDir = options.logDir;
     this.debugDir = options.debugDir;
+    this.logger = new Logger(this.debugDir, 'math-server');
   }
 
   async start() {
@@ -21,29 +33,17 @@ class MathServer {
       throw new Error('Server is already running');
     }
 
-    // Create directories
-    fs.mkdirSync(this.logsDir, { recursive: true });
     fs.mkdirSync(this.debugDir, { recursive: true });
     
-    // Setup logging
-    const timestamp = new Date().toISOString().split('T')[0];
-    this.rpcLogFile = path.join(this.logsDir, `math-renderer-rpc-${timestamp}.log`);
-    this.processLogFile = path.join(this.logsDir, `math-renderer-process-${timestamp}.log`);
-    
-    this.logProcess = (msg) => {
-      const entry = `[${new Date().toISOString()}] ${msg}\n`;
-      fs.appendFileSync(this.processLogFile, entry);
-    };
-
-    // Initialize components
-    this.svgConverter = new SvgConverter(this.debugDir, this.logProcess.bind(this));
-    this.rpcServer = new JsonRpcHandler(this, this.logProcess.bind(this), {
+    this.svgConverter = new SvgConverter(this.debugDir);
+    this.rpcServer = new JsonRpcHandler(this, {
       inputStream: this.options.inputStream,
-      outputStream: this.options.outputStream
+      outputStream: this.options.outputStream,
+      logger: this.logger
     });
 
     this.isRunning = true;
-    this.logProcess('Math server started');
+    this.logger.log('Math server started');
     return this;
   }
 
@@ -57,7 +57,7 @@ class MathServer {
     }
     
     this.isRunning = false;
-    this.logProcess('Math server stopped');
+    this.logger.log('Math server stopped');
   }
 
   async renderMath(params) {
@@ -66,7 +66,7 @@ class MathServer {
     }
 
     const latex = params.latex;
-    this.logProcess(`Rendering LaTeX: ${latex}`);
+    this.logger.log(`Rendering LaTeX: ${latex}`);
     return await this.svgConverter.convertLatexToSvg(latex, params);
   }
 

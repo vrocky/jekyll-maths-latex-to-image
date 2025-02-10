@@ -2,11 +2,6 @@
 
 A Jekyll plugin that converts LaTeX mathematical expressions to SVG/PNG images, providing better compatibility across different platforms and browsers.
 
-## Prerequisites
-
-- LaTeX (texlive or similar)
-- ImageMagick (for PDF to PNG conversion)
-
 ## Installation
 
 Add this line to your Jekyll site's `Gemfile`:
@@ -89,28 +84,6 @@ texsvg_math_renderer:
   path: /assets/img/math  # Custom path for generated images
   format: both           # 'svg', 'png', or 'both'
 ```
-
-## Debugging
-
-Set the DEBUG environment variable to enable detailed logging:
-
-```bash
-DEBUG=true bundle exec jekyll build
-```
-
-## Known Limitations
-
-1. LaTeX expressions must be on a single line for inline math
-2. Some complex LaTeX packages may not be supported
-3. Special characters in LaTeX expressions should be properly escaped
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin feature/my-new-feature`)
-5. Create a new Pull Request
 
 ## License
 

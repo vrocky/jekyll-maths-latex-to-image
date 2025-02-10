@@ -1,0 +1,23 @@
+version: '3'
+
+tasks:
+  build:
+    desc: Build the Node.js package
+    cmds:
+      - npm run build
+
+  test:
+    desc: Run tests
+    cmds:
+      - npm test
+
+  publish:
+    desc: Publish the package to npm registry
+    cmds:
+      - npm publish
+
+  clean:
+    desc: Clean up build artifacts
+    cmds:
+      - rm -rf dist/
+      - rm -rf node_modules/

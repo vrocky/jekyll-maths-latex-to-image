@@ -1,11 +1,14 @@
 class JsonRpcHandler {
-  constructor(mathRenderer, logger, options = {}) {
-    if (!mathRenderer || !logger || !options.inputStream || !options.outputStream) {
-      throw new Error('Missing required parameters');
+  constructor(mathRenderer, options = {}) {
+    if (!mathRenderer) {
+      throw new Error('Math renderer is required');
+    }
+    if (!options.inputStream || !options.outputStream || !options.logger) {
+      throw new Error('Input stream, output stream, and logger are required');
     }
     
     this.mathRenderer = mathRenderer;
-    this.logger = logger;
+    this.logger = options.logger;
     this.buffer = '';
     this.inputStream = options.inputStream;
     this.outputStream = options.outputStream;
@@ -45,7 +48,7 @@ class JsonRpcHandler {
     try {
       if (!line.trim()) return;
       
-      this.logger(`Processing request: ${line}`);
+      this.logger.log(`Processing request: ${line}`);
       const request = JSON.parse(line);
       
       let response;
@@ -57,10 +60,11 @@ class JsonRpcHandler {
       }
       
       const responseStr = JSON.stringify(response);
-      this.logger(`Sending response: ${responseStr}`);
+      this.logger.log(`Sending response: ${responseStr}`);
       this.sendResponse(responseStr);
       
     } catch (error) {
+      this.logger.error(`Parse error: ${error.message}`, error);
       const errorResponse = this.createErrorResponse('unknown', -32700, `Parse error: ${error.message}`);
       this.sendResponse(JSON.stringify(errorResponse));
     }
@@ -95,7 +99,7 @@ class JsonRpcHandler {
       }
     });
 
-    this.logger('JSON RPC server initialized');
+    this.logger.log('JSON RPC server initialized');
   }
 }
 
