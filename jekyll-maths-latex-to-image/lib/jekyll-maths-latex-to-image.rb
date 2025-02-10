@@ -149,51 +149,109 @@ end
 
 module Jekyll
   module MathsLatexToImage
-    class Generator < Jekyll::Generator  # Changed from MathRenderer to MathsLatexToImage
+    class Generator < Jekyll::Generator
       priority :highest
       
       def initialize(config = nil)
         super()
         setup_logging
-        setup_debug_dir
+        setup_debug_dir  # Added back debug dir setup
         @config = config
+        @enabled = nil
         @svg_cache = {}
         
-        # Register the post_write hook during initialization
+        # Essential patterns for math detection
+        @display_math_pattern = /\$\$(.*?)\$\$/m
+        @inline_math_pattern = /(?<!\\)\$([^\$]+?)\$/
+        
         Jekyll::Hooks.register :site, :post_write do |site|
-          @console_logger.info("Post-write hook triggered")
-          begin
-            copy_svg_files(site) # First copy SVG files
-            convert_to_png(site) # Then do conversion to PNG
-            @console_logger.info("Post-write tasks completed successfully")
-          rescue => e
-            @console_logger.error("Post-write tasks failed: #{e.message}")
-            @console_logger.error(e.backtrace.join("\n"))
-          end
+          next unless enabled?(site)
+          handle_post_write(site)
         end
         
-        @@instance = self  # Store instance for hook access
+        @@instance = self
+      end
+
+      def enabled?(site)
+        # Cache the enabled state per site
+        @enabled ||= begin
+          # Explicitly check configuration
+          config = site.config['jekyll-maths-latex-to-image'] || {}
+          is_enabled = config['enabled'].nil? ? true : config['enabled']
+          
+          @console_logger.info("Jekyll Maths LaTeX to Image plugin state: #{is_enabled ? 'enabled' : 'disabled'}")
+          @console_logger.debug("Configuration: #{config.inspect}")
+          
+          is_enabled
+        end
+      end
+
+      def generate(site)
+        @site = site
         
-        # Updated regex patterns
-        @display_math_pattern = /\$\$(.*?)\$\$/m
-        @inline_math_pattern = /(?<!\\)\$([^\$]+?)\$/  # Changed pattern
-        
+        # Early return if plugin is disabled
+        unless enabled?(site)
+          @console_logger.info("Plugin is disabled via configuration - skipping all processing")
+          return
+        end
+
+        @console_logger.info("Starting math processing")
+        initialize_renderer
+        setup_directories
+        process_site_content(site)
+      rescue => e
+        @console_logger.error("Error during generation: #{e.message}")
+        @console_logger.error(e.backtrace.join("\n"))
+        raise
+      end
+
+      private
+
+      def initialize_renderer
+        return if @renderer || !enabled?(@site)
         @renderer = NodeRendererClient.new(@console_logger)
       rescue => e
         @console_logger.error("Failed to initialize renderer: #{e.message}")
         raise
       end
 
-      def generate(site)
-        @site = site
+      def setup_directories
+        return unless enabled?(@site)
         setup_svg_dir
         setup_temp_dir
-        start_time = Time.now
+      end
+
+      def process_site_content(site)
+        return unless enabled?(site)
         
-        @svg_files = {}  # Map of temp paths to final paths
+        start_time = Time.now
+        @svg_files = {}
+        
         process_documents(site)
         
         @console_logger.info("Math rendering completed in #{Time.now - start_time.round(2)} seconds")
+      end
+
+      def handle_post_write(site)
+        return unless enabled?(site)
+        
+        @console_logger.info("Running post-write tasks")
+        begin
+          copy_svg_files(site)
+          convert_to_png(site)
+          cleanup_temp_files
+          @console_logger.info("Post-write tasks completed successfully")
+        rescue => e
+          @console_logger.error("Post-write tasks failed: #{e.message}")
+          @console_logger.error(e.backtrace.join("\n"))
+        end
+      end
+
+      def cleanup_temp_files
+        return unless enabled?(@site)
+        
+        FileUtils.rm_rf(@temp_svg_dir) if @temp_svg_dir && Dir.exist?(@temp_svg_dir)
+        @renderer&.cleanup
       end
 
       def convert_to_png(site)
@@ -226,19 +284,6 @@ module Jekyll
         end
       end
 
-      # New method to handle post-write tasks
-      def post_write_tasks(site)
-        begin
-          convert_to_png(site)  # Do PNG conversion first
-          copy_svg_files(site)  # Then copy both SVG and PNG files
-        rescue => e
-          @console_logger.error("Post-write tasks failed: #{e.message}")
-          @console_logger.error(e.backtrace.join("\n"))
-        end
-      end
-
-      private
-
       def setup_logging
         log_dir = File.join(Dir.pwd, '_logs', 'math')
         FileUtils.mkdir_p(log_dir)
@@ -266,9 +311,11 @@ module Jekyll
       end
 
       def setup_svg_dir
-        # Use configurable path from _config.yml or default
-        base_path = @site.config.dig('texsvg_math_renderer', 'path') || '/assets/img/math'
+        # Use configurable path from new config structure
+        config = @site.config['jekyll-maths-latex-to-image'] || {}
+        base_path = config['path'] || '/assets/img/math'
         @svg_url_path = File.join(@site.config['baseurl'].to_s, base_path)
+        @console_logger.info("SVG URL path set to: #{@svg_url_path}")
       end
 
       def setup_temp_dir
@@ -348,6 +395,7 @@ module Jekyll
       end
 
       def render_math(math, display_mode)
+        return math unless enabled?(@site)
         cache_key = "#{math}:#{display_mode}"
         return @svg_cache[cache_key] if @svg_cache.key?(cache_key)
         
@@ -357,8 +405,9 @@ module Jekyll
           svg_path = save_svg(math, svg, SecureRandom.uuid)
           png_path = svg_path.sub(/\.svg$/, '.png')
           
-          # Get format preference from config
-          format = @site.config.dig('texsvg_math_renderer', 'format') || 'both'
+          # Get format from new config structure
+          config = @site.config['jekyll-maths-latex-to-image'] || {}
+          format = config['format'] || 'both'
           
           # Build srcset based on format
           srcset = case format
@@ -474,27 +523,18 @@ module Jekyll
         })
       end
 
-      # Remove old logging methods
-      def log_error(message, data = {})
-        @console_logger.error("#{message} #{data.inspect unless data.empty()}")
-      end
-
-      def log_info(message, data = {})
-        @console_logger.info("#{message} #{data.inspect unless data.empty()}")
-      end
-
-      def log_debug(message, data = {})
-        @console_logger.debug("#{message} #{data.inspect unless data.empty()}")
-      end
-
       def process_documents(site)
-        all_documents = site.pages + site.posts.docs
+        return unless enabled?(site)
+        
+        # Include both pages and posts
+        all_documents = site.pages + site.posts.docs + site.documents
         chunks = all_documents.each_slice(5).to_a
         
         Parallel.each(chunks, in_threads: Parallel.processor_count) do |chunk|
           chunk.each do |doc|
+            next unless has_math?(doc.content)
             begin
-              convert_math(doc) if has_math?(doc.content)
+              convert_math(doc)
             rescue => e
               @console_logger.error("Error processing #{doc.path}: #{e.message}")
             end
@@ -521,6 +561,9 @@ module Jekyll
           raise msg
         end
       end
+
+      # Add missing SecureRandom require
+      require 'securerandom'
     end
   end
 end

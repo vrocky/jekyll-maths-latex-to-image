@@ -70,9 +70,10 @@ Then add to your `_config.yml`:
 plugins:
   - jekyll-maths-latex-to-image
 
-texsvg_math_renderer:
-  path: /assets/img/math  # Path for generated images
-  format: both           # 'svg', 'png', or 'both'
+jekyll-maths-latex-to-image:
+  enabled: true              # Enable/disable the plugin
+  path: /assets/img/math    # Path for generated images
+  format: both             # 'svg', 'png', or 'both'
 ```
 
 Install the gem:

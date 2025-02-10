@@ -80,10 +80,20 @@ $$
 In your `_config.yml`:
 
 ```yaml
-texsvg_math_renderer:
-  path: /assets/img/math  # Custom path for generated images
-  format: both           # 'svg', 'png', or 'both'
+jekyll-maths-latex-to-image:
+  enabled: true            # Enable/disable the plugin (default: true)
+  path: /assets/img/math   # Custom path for generated images
+  format: both            # 'svg', 'png', or 'both'
 ```
+
+### Configuration Options Explained
+
+- `enabled`: Boolean to enable/disable the plugin (default: true)
+- `path`: Directory where images will be saved (default: /assets/img/math)
+- `format`: Output format for equations (default: both)
+  - `svg`: Only SVG images
+  - `png`: Only PNG images
+  - `both`: Both SVG and PNG images
 
 ## License
 

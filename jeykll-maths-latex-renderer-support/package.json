@@ -1,6 +1,6 @@
 {
   "name": "jeykll-maths-latex-to-image-node-support",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "A support package for Jekyll plugin that converts LaTeX mathematical expressions to PNG images for better compatibility and improved rendering across different platforms",
   "main": "index.js",
   "scripts": {
@@ -40,5 +40,9 @@
   "bin": {
     "jekyll-maths-tex2svg": "./tex2svg_renderer/index.js",
     "jekyll-maths-svg2png": "./svg_to_png_converter.js"
-  }
+  },
+  "files": [
+    "tex2svg_renderer/index.js",
+    "svg_to_png_converter.js"
+  ]
 }
