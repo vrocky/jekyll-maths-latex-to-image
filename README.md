@@ -1,85 +1,104 @@
-# Jekyll Maths LaTeX to Image Project
+# Jekyll Maths LaTeX to Image
 
-Convert LaTeX mathematical expressions to images in Jekyll sites with high-quality rendering and excellent browser compatibility.
+A complete solution for rendering LaTeX mathematical expressions in Jekyll sites as SVG/PNG images, ensuring consistent display across all platforms and browsers.
 
-## Project Structure
+## System Requirements
 
-This repository contains two main components:
+- Ruby >= 2.5.0
+- Node.js >= 14.0.0
+- LaTeX installation (TeXLive recommended)
 
-1. **jekyll-maths-latex-to-image**: A Ruby gem that integrates with Jekyll
-2. **jeykll-maths-latex-renderer-support**: A Node.js package that handles the actual LaTeX rendering
+## Installation
 
-## Quick Start
+This project consists of two packages that work together:
+1. A Ruby gem (Jekyll plugin)
+2. A Node.js support package
 
-### 1. Install Prerequisites
+### 1. Install the Node.js Support Package
+
+First, install the Node.js package globally:
 
 ```bash
-# Install LaTeX
-sudo apt-get install texlive texlive-latex-extra
+npm install -g jeykll-maths-latex-to-image-node-support
+```
 
-# Install Node.js dependencies
-cd jeykll-maths-latex-renderer-support
-npm install
+Verify the installation:
+```bash
+jekyll-maths-tex2svg --version
 ```
 
 ### 2. Install the Jekyll Plugin
 
-Add to your Jekyll site's Gemfile:
+Add to your Jekyll site's `Gemfile`:
+
 ```ruby
 gem 'jekyll-maths-latex-to-image'
 ```
 
-### 3. Configure
+Then add to your `_config.yml`:
 
-In `_config.yml`:
 ```yaml
 plugins:
   - jekyll-maths-latex-to-image
 
 texsvg_math_renderer:
-  path: /assets/img/math
-  format: both
+  path: /assets/img/math  # Path for generated images
+  format: both           # 'svg', 'png', or 'both'
 ```
 
-## Development
-
-### Setup Development Environment
+Install the gem:
 
 ```bash
-# Clone the repository
-git clone https://github.com/vrocky/jekyll-maths-latex-to-image
-cd jekyll-maths-latex-to-image
-
-# Install Node.js dependencies
-cd jeykll-maths-latex-renderer-support
-npm install
-
-# Install Ruby dependencies
-cd ../jekyll-maths-latex-to-image
 bundle install
 ```
 
-### Running Tests
+## Usage
 
-```bash
-# Node.js tests
-cd jeykll-maths-latex-renderer-support
-npm test
+1. Start using LaTeX math in your Markdown files:
 
-# Ruby tests
-cd ../jekyll-maths-latex-to-image
-bundle exec rspec
-```
+   ```markdown
+   Inline math: $E = mc^2$
+   
+   Display math:
+   $$
+   \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+   $$
+   ```
 
-## Contributing
+2. Build your Jekyll site:
 
-Contributions are welcome! Please check out our [Contributing Guide](CONTRIBUTING.md).
+   ```bash
+   bundle exec jekyll build
+   ```
+
+   or serve locally:
+
+   ```bash
+   bundle exec jekyll serve
+   ```
+
+The plugin will automatically:
+- Convert LaTeX expressions to SVG/PNG
+- Cache the generated images
+- Replace LaTeX with image tags in the HTML output
+
+## Troubleshooting
+
+If you encounter issues:
+
+1. Verify both packages are installed:
+   ```bash
+   gem list jekyll-maths-latex-to-image
+   npm list -g jeykll-maths-latex-to-image-node-support
+   ```
+
+2. Check LaTeX installation:
+   ```bash
+   tex --version
+   ```
+
+3. Ensure write permissions for the image output directory
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
-
-## Documentation
-
-- [Jekyll Plugin Documentation](jekyll-maths-latex-to-image/README.md)
-- [Node.js Support Package Documentation](jeykll-maths-latex-renderer-support/README.md)
+MIT License - see LICENSE file for details.
